@@ -9,20 +9,27 @@
 #define legendXPos 60
 #define legendYPos 10
 
-void DisplayLegend(int zn, int zero, char *txt, int x, int y, int counter, int player1Pts, int player2Pts) {// we set black to be the background color
-// check conio2.h for available colors
+enum codes {
+    black_stone = 3,
+
+};
+char* AllocateBoard(int arrBoardSize){}
+
+
+void DisplayLegend(int zn, int zero, char *txt, int x, int y, int counter, int player1Pts, int player2Pts) {
+    // check conio2.h for available colors
     textbackground(BLACK);
     // clear the screen: we fill it out with spaces with
-// the specified background color
+    // the specified background color
     clrscr();
     // we set the text color (7 == LIGHTGRAY)
     textcolor(7);
     // we move the coursor to column 48 and row 1
-// rows and column are numbered starting with 1
+    // rows and column are numbered starting with 1
 
     gotoxy(legendXPos, legendYPos);
     // we print out a text at a given cursor position
-// the cursor will move by the length of the text
+    // the cursor will move by the length of the text
     cputs("q       = exit");
     gotoxy(legendXPos, legendYPos+1);
     cputs("cursors = moving");
@@ -36,10 +43,10 @@ void DisplayLegend(int zn, int zero, char *txt, int x, int y, int counter, int p
     else sprintf(txt, "key code: 0x%02x", zn);
     cputs(txt);
     gotoxy(legendXPos, legendYPos+5);
-    sprintf(txt, "x coordinates: %02d", x);
+    sprintf(txt, "x coordinates: %02d", x-xCord);
     cputs(txt);
     gotoxy(legendXPos, legendYPos+6);
-    sprintf(txt, "y coordinates: %02d", y);
+    sprintf(txt, "y coordinates: %02d", y-yCord);
     cputs(txt);
     gotoxy(legendXPos, legendYPos+7);
     sprintf(txt, "counter: %02d", counter);
@@ -50,9 +57,10 @@ void DisplayLegend(int zn, int zero, char *txt, int x, int y, int counter, int p
     gotoxy(legendXPos, legendYPos+9);
     sprintf(txt, "Player 2 points: %02d", player2Pts);
     cputs(txt);
+
 }
 
-void initializeBoard(int &boardSize, int sign) {
+void initializeBoard(int *boardSize, int sign) {
     while (true) {
         gotoxy(3, 2);
         // we print out a text at a given cursor position
@@ -65,13 +73,13 @@ void initializeBoard(int &boardSize, int sign) {
         sign = getch();
         switch (sign) {
             case aKey:
-                boardSize = 9;
+                *boardSize = 9;
                 break;
             case bKey:
-                boardSize = 13;
+                *boardSize = 13;
                 break;
             case cKey:
-                boardSize = 19;
+                *boardSize = 19;
                 break;
             default:
                 gotoxy(3, 5);
@@ -98,20 +106,20 @@ void CreateBoard(int boardSize){
 
 int main() {
     int zn = 0, attr = 7, back = 0, zero = 0;
-    int  boardSize;
+    int boardSize;
     char txt[32];
     int counter = 0;
-    int sign;
+    int sign = 0;
     int player1Pts = 0;
     int player2Pts = 0;
     settitle("Jakub Andrunik, 193166");
     _setcursortype(_NOCURSOR);
-    initializeBoard(boardSize, sign);
+    initializeBoard(&boardSize, sign);
     int x = (boardSize+xCord) / 2;
     int y = (boardSize + yCord) / 2;
     int arrBoardSize = boardSize +2;
-    int stonePlacement[arrBoardSize][arrBoardSize];
 
+    int stonePlacement[arrBoardSize][arrBoardSize];
     for (int i = 0; i < arrBoardSize; i++){
         for (int j = 0; j < arrBoardSize; j++) {
             if(i == 0 || i == arrBoardSize - 1 || j == 0 || j == arrBoardSize - 1) stonePlacement[i][j] = 3;
@@ -183,60 +191,55 @@ int main() {
                 cputs("Move Impossible");
                 continue;
             }
-            for (int i = 1; i < arrBoardSize - 1; i++){
-                for (int j = 1; j < arrBoardSize - 1; j++) {
-                    if((stonePlacement[i-1][j] == 1 || stonePlacement[i-1][j] == 3)
-                       && (stonePlacement[i+1][j] == 1 || stonePlacement[i+1][j] == 3)
-                       && (stonePlacement[i][j-1] == 1 || stonePlacement[i][j-1] == 3)
-                       && (stonePlacement[i][j+1] == 1 || stonePlacement[i][j+1] == 3)){
-                        stonePlacement[i][j] = 0;
-                        gotoxy(legendXPos, legendYPos+10);
-                        cputs("Move Impossible");
-                        continue;
-                    }
-                    if((stonePlacement[i-1][j] == 2 || stonePlacement[i-1][j] == 3)
-                       && (stonePlacement[i+1][j] == 2 || stonePlacement[i+1][j] == 3)
-                       && (stonePlacement[i][j-1] == 2 || stonePlacement[i][j-1] == 3)
-                       && (stonePlacement[i][j+1] == 2 || stonePlacement[i][j+1] == 3)){
-                        stonePlacement[i][j] = 0;
-                        gotoxy(legendXPos, legendYPos+10);
-                        cputs("Move Impossible");
-                        continue;
-                    }
-                }
+            if((stonePlacement[tabX-1][tabY] == 1 || stonePlacement[tabX-1][tabY] == 2
+                || stonePlacement[tabX-1][tabY] == 3)
+                && (stonePlacement[tabX+1][tabY] == 1 || stonePlacement[tabX+1][tabY] == 2
+                || stonePlacement[tabX+1][tabY] == 3)
+                && (stonePlacement[tabX][tabY-1] == 1 || stonePlacement[tabX][tabY-1] == 2
+                || stonePlacement[tabX][tabY-1] == 3)
+                && (stonePlacement[tabX][tabY+1] == 1 || stonePlacement[tabX][tabY+1] == 2
+                || stonePlacement[tabX][tabY+1] == 3)){
+
+                stonePlacement[tabX][tabY] = 0;
+                gotoxy(legendXPos, legendYPos+10);
+                cputs("Move Impossible");
+                continue;
             }
             if(counter % 2 == 0) stonePlacement[tabX][tabY] = 1;
             else stonePlacement[tabX][tabY] = 2;
 
             for (int i = 1; i < arrBoardSize - 1; i++){
                 for (int j = 1; j < arrBoardSize - 1; j++) {
-                    if(stonePlacement[i][j] == 2
-                        &&(stonePlacement[i-1][j] == 1 || stonePlacement[i-1][j] == 3)
-                        && (stonePlacement[i+1][j] == 1 || stonePlacement[i+1][j] == 3)
-                        && (stonePlacement[i][j-1] == 1 || stonePlacement[i][j-1] == 3)
-                        && (stonePlacement[i][j+1] == 1 || stonePlacement[i][j+1] == 3)){
+                    if (stonePlacement[i][j] == 2
+                        && (stonePlacement[i - 1][j] == 1 || stonePlacement[i - 1][j] == 3)
+                        && (stonePlacement[i + 1][j] == 1 || stonePlacement[i + 1][j] == 3)
+                        && (stonePlacement[i][j - 1] == 1 || stonePlacement[i][j - 1] == 3)
+                        && (stonePlacement[i][j + 1] == 1 || stonePlacement[i][j + 1] == 3)) {
                         stonePlacement[i][j] = 0;
                         player1Pts++;
                     }
-                    if((stonePlacement[i][j] == 1 &&
-                        stonePlacement[i-1][j] == 2 || stonePlacement[i-1][j] == 3)
-                       && (stonePlacement[i+1][j] == 2 || stonePlacement[i+1][j] == 3)
-                       && (stonePlacement[i][j-1] == 2 || stonePlacement[i][j-1] == 3)
-                       && (stonePlacement[i][j+1] == 2 || stonePlacement[i][j+1] == 3)){
+                    if ((stonePlacement[i][j] == 1 &&
+                         stonePlacement[i - 1][j] == 2 || stonePlacement[i - 1][j] == 3)
+                        && (stonePlacement[i + 1][j] == 2 || stonePlacement[i + 1][j] == 3)
+                        && (stonePlacement[i][j - 1] == 2 || stonePlacement[i][j - 1] == 3)
+                        && (stonePlacement[i][j + 1] == 2 || stonePlacement[i][j + 1] == 3)) {
                         stonePlacement[i][j] = 0;
                         player2Pts++;
                     }
                 }
             }
-
             counter++;
-            }
+        }
 
 
         if(zn == 0x6e){
             counter = 0;
-            for (int i = 0; i < boardSize; i++)
-                for (int j = 0; j < boardSize; j++) stonePlacement[i][j] = 0;
+            for (int i = 0; i < arrBoardSize; i++){
+                for (int j = 0; j < arrBoardSize; j++) {
+                    if(i == 0 || i == arrBoardSize - 1 || j == 0 || j == arrBoardSize - 1) stonePlacement[i][j] = 3;
+                    else stonePlacement[i][j] = 0;
+                }
+            }
         }
 
 
@@ -247,5 +250,7 @@ int main() {
         return 0;
 
     }
+
+
 
 
