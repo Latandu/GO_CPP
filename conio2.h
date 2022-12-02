@@ -7,6 +7,7 @@
 #define CONIO2_H
 
 #define BLACK		0
+#define _CRT_SECURE_NO_WARNINGS
 #define BLUE		1
 #define GREEN		2
 #define CYAN		3

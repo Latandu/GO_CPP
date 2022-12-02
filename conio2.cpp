@@ -4,6 +4,7 @@
  * author: K.M. Ocetkiewicz
  */
 #include<stdio.h>
+#define _CRT_SECURE_NO_WARNINGS
 #include<malloc.h>
 #include<string.h>
 #include<windows.h>
@@ -20,8 +21,10 @@
 
 int _wscroll;
 
-int min(int a, int b){
-    if(a < b) return a;
+int min(int a, int b) {
+    if(a < b){
+        return a;
+    }
     else return b;
 }
 
