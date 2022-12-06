@@ -19,12 +19,9 @@ void CreateBoard(int boardSize);
 bool CheckForBorders(int boardSize, int *x, int *y);
 void initializeBoard(int *boardSize, int sign);
 void ArrowMovement(int *zn, int *zero, int *x, int *y);
-void DisplayLegend(int zn, int zero, char *txt, int x, int y, int counter, int player1Pts, int player2Pts, int ko);
+void DisplayLegend(int zn, int zero, char *txt, int x, int y, int counter, int player1Pts, int player2Pts);
 void NewBoard(int arrBoardSize, int **stonePlacement, int borders);
-int** AdvancedSurroundingCheck(int player, int opponent, int **stonePlacement, int **tempStonePlacement, int **usedStonePlacement, int i, int j);
-bool KoEnforce(int **stonePlacement, int player, int opponent, int** tempStonePlacement, int** usedStonePlacement,
-               int i, int j, int &koPenalty);
-bool CheckForSuicide(int **stonePlacement, int player, int opponent, int** tempStonePlacement, int** usedStonePlacement,
-                     int i, int j, int &koPenalty);
+int SurroundingCheck(int player, int opponent, int **stonePlacement, int **tempStonePlacement, int i, int j);
+bool CheckKO(int **stonePlacement, int **tempStonePlacement, int arrBoardSize);
 void InsertStone(int arrBoardSize, int **stonePlacement);
 #endif //GO_CPP_FUNCTIONS_H

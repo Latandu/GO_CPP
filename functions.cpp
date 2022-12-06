@@ -57,107 +57,48 @@ void NewBoard(int arrBoardSize, int **stonePlacement, int borders) {
     }
 }
 
-bool SurroundingStones(int player, int opponent, int **stonePlacement, int i, int j) {
-   if (stonePlacement[i][j] == opponent
-        && (stonePlacement[i - 1][j] == player || stonePlacement[i - 1][j] == 3)
-        && (stonePlacement[i + 1][j] == player || stonePlacement[i + 1][j] == 3)
-        && (stonePlacement[i][j - 1] == player || stonePlacement[i][j - 1] == 3)
-        && (stonePlacement[i][j + 1] == player || stonePlacement[i][j + 1] == 3)){
-            return true;
-    }
-    else return false;
-}
-//TODO Implement in main cpp: add functionality to check for advanced surroundings only when stone[i][j] is an opponent
-
-int** AdvancedSurroundingCheck(int player, int opponent, int **stonePlacement, int **tempStonePlacement, int **usedStonePlacement, int i, int j){
-    if(stonePlacement == nullptr) return nullptr;
+int SurroundingCheck(int player, int opponent, int **stonePlacement, int **tempStonePlacement, int i, int j){
+    static int point;
     if (stonePlacement[i][j] == opponent
         && ((stonePlacement[i - 1][j] == 0)
             || (stonePlacement[i + 1][j] == 0)
             || (stonePlacement[i][j - 1] == 0)
-            || (stonePlacement[i][j + 1] == 0))){
-        return nullptr;
-    }
-    if (stonePlacement[i][j - 1] == opponent && tempStonePlacement[i][j - 1] == 0) {
-        tempStonePlacement[i][j] = opponent;
-        int **hole_found = AdvancedSurroundingCheck(player, opponent, stonePlacement, tempStonePlacement,
-                                                    usedStonePlacement, i, j - 1);
-        if (hole_found == nullptr) return nullptr;
-    } else if (stonePlacement[i][j + 1] == opponent && tempStonePlacement[i][j - 1] == 0) {
-        tempStonePlacement[i][j] = opponent;
-        int **hole_found = AdvancedSurroundingCheck(player, opponent, stonePlacement, tempStonePlacement,
-                                                    usedStonePlacement, i, j + 1);
-        if (hole_found == nullptr) return nullptr;
-    } else if (stonePlacement[i - 1][j] == opponent && tempStonePlacement[i - 1][j] == 0) {
-        tempStonePlacement[i][j] = opponent;
-        int **hole_found = AdvancedSurroundingCheck(player, opponent, stonePlacement, tempStonePlacement,
-                                                    usedStonePlacement, i - 1, j);
-        if (hole_found == nullptr) return nullptr;
-    } else if (stonePlacement[i + 1][j] == opponent && tempStonePlacement[i + 1][j] == 0) {
-        tempStonePlacement[i][j] = opponent;
-        int **hole_found = AdvancedSurroundingCheck(player, opponent, stonePlacement, tempStonePlacement,
-                                                    usedStonePlacement, i + 1, j);
-        if (hole_found == nullptr) return nullptr;
-    } else if(SurroundingStones(player, opponent, tempStonePlacement, i, j)){
-        tempStonePlacement[i][j] = stonePlacement[i][j];
-        return tempStonePlacement;
-    }
-    else return tempStonePlacement;
-    return nullptr;
-}
+            || (stonePlacement[i][j + 1] == 0))) return 0;
 
-bool KoEnforce(int **stonePlacement, int player, int opponent, int** tempStonePlacement, int** usedStonePlacement,
-               int i, int j, int &koPenalty) {
-    static int placeX = 0, placeY = 0;
-    if(koPenalty == 0  && SurroundingStones(opponent, player, stonePlacement, i, j)) {
-        placeX = NULL;
-        placeY = NULL;
-        if (SurroundingStones(player, opponent, stonePlacement, i + 1, j)) {
-            koPenalty = 2;
-            placeX = i+1;
-            placeY = j;
-            stonePlacement[i + 1][j] = 0;
-            return true;
-        } else if (SurroundingStones(player, opponent, stonePlacement, i - 1, j)) {
-            koPenalty = 2;
-            placeX = i-1;
-            placeY = j;
-            stonePlacement[i - 1][j] = 0;
-            return true;
-        } else if (SurroundingStones(player, opponent, stonePlacement, i, j - 1)) {
-            koPenalty = 2;
-            placeX = i;
-            placeY = j-1;
-            stonePlacement[i][j - 1] = 0;
-            return true;
-        } else if (SurroundingStones(player, opponent, stonePlacement, i, j + 1)) {
-            koPenalty = 2;
-            placeX = i;
-            placeY = j+2;
-            stonePlacement[i][j + 1] = 0;
-            return true;
-        }
-    } else if(stonePlacement[i][j] == opponent) {
-        if (AdvancedSurroundingCheck(player, opponent, stonePlacement, tempStonePlacement,
-                                     usedStonePlacement, i, j) != nullptr && i != placeX && j != placeY) {
-            int arrBoardSize = 15;
-            for (int k = 0; k < arrBoardSize; k++) {
-                for (int l = 0; l < arrBoardSize; l++) {
-                    if (tempStonePlacement[k][l] == opponent) stonePlacement[k][l] = 0;
-                }
-            }
-            return true;
+    tempStonePlacement[i][j] = opponent;
+    if((stonePlacement[i - 1][j] == player || stonePlacement[i - 1][j] == 3 || tempStonePlacement[i - 1][j] == opponent)
+    && (stonePlacement[i + 1][j] == player || stonePlacement[i + 1][j] == 3 || tempStonePlacement[i + 1][j] == opponent)
+    && (stonePlacement[i][j + 1] == player || stonePlacement[i][j + 1] == 3 || tempStonePlacement[i][j + 1] == opponent)
+    && (stonePlacement[i][j - 1] == player || stonePlacement[i][j - 1] == 3 || tempStonePlacement[i][j - 1] == opponent))
+        return 1;
+
+
+    if(stonePlacement[i][j - 1] == opponent & tempStonePlacement[i][j - 1] != opponent){
+        point = SurroundingCheck(player, opponent, stonePlacement, tempStonePlacement, i, j - 1);
+        if(point == 0) return 0;
+    }
+    if(stonePlacement[i][j + 1] == opponent & tempStonePlacement[i][j + 1] != opponent){
+        point = SurroundingCheck(player, opponent, stonePlacement, tempStonePlacement, i, j + 1);
+        if(point == 0) return 0;
+    }
+    if(stonePlacement[i - 1][j] == opponent & tempStonePlacement[i - 1][j] != opponent){
+        point = SurroundingCheck(player, opponent, stonePlacement, tempStonePlacement, i - 1, j);
+        if(point == 0) return 0;
+    }
+    if(stonePlacement[i + 1][j] == opponent & tempStonePlacement[i + 1][j] != opponent){
+        point = SurroundingCheck(player, opponent, stonePlacement, tempStonePlacement, i + 1, j);
+        if(point == 0) return 0;
+    }
+    return point;
+}
+bool CheckKO(int **stonePlacement, int **tempStonePlacement, int arrBoardSize){
+    for(int i = 0; i < arrBoardSize - 1; i++){
+        for(int j = 0; j < arrBoardSize - 1; j++){
+            if(stonePlacement[i][j] == tempStonePlacement[i][j]) continue;
+            else return false;
         }
     }
-    return false;
-    }
-bool CheckForSuicide(int **stonePlacement, int player, int opponent, int** tempStonePlacement, int** usedStonePlacement,
-                     int i, int j, int &koPenalty){
-    if(!KoEnforce(stonePlacement, player, opponent, tempStonePlacement, usedStonePlacement,  i, j, koPenalty) &&
-    SurroundingStones(opponent, player, stonePlacement, i, j)){
-        return false;
-    }
-    else return true;
+    return true;
 }
 
 bool CheckForBorders(int boardSize, int *x, int *y) {
@@ -207,7 +148,7 @@ void ArrowMovement(int *zn, int *zero, int *x, int *y) {
 
 }
 
-void DisplayLegend(int zn, int zero, char *txt, int x, int y, int counter, int player1Pts, int player2Pts, int ko) {
+void DisplayLegend(int zn, int zero, char *txt, int x, int y, int counter, int player1Pts, int player2Pts) {
     textbackground(BLACK);
     clrscr();
     textcolor(7);
@@ -238,6 +179,4 @@ void DisplayLegend(int zn, int zero, char *txt, int x, int y, int counter, int p
     gotoxy(legendXPos, legendYPos+9);
     sprintf(txt, "Player 2 points: %02d", player2Pts);
     cputs(txt);
-    gotoxy(legendXPos, legendYPos+10);
-    if(ko > 0) cputs("KO PENALTY ACTIVE");
 }
