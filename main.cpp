@@ -34,10 +34,14 @@ int main() {
     int y = (boardSize + yCord) / 2;
     int arrBoardSize = boardSize +2;
     int** stonePlacement = new int*[arrBoardSize];
-    for(int i = 0; i < arrBoardSize; i++) stonePlacement[i] = new int[arrBoardSize];
     int** tempStonePlacement = new int*[arrBoardSize];
-    for(int i = 0; i < arrBoardSize; i++) stonePlacement[i] = new int[arrBoardSize];
-    NewBoard(arrBoardSize, stonePlacement);
+    int **usedStonePlacement = new int*[arrBoardSize];
+    for(int i = 0; i < arrBoardSize; i++) {
+        stonePlacement[i] = new int[arrBoardSize];
+        tempStonePlacement[i] = new int[arrBoardSize];
+        usedStonePlacement[i] = new int[arrBoardSize];
+    }
+    NewBoard(arrBoardSize, stonePlacement, 3);
 
 
 #ifndef __cplusplus
@@ -45,6 +49,8 @@ int main() {
     Functions_Init();
 #endif
     do {
+        NewBoard(arrBoardSize, tempStonePlacement, 0);
+        NewBoard(arrBoardSize, usedStonePlacement, 0);
         DisplayLegend(zn, zero, txt, x, y, counter, player1Pts, player2Pts, ko);
         CreateBoard(boardSize);
         gotoxy(x, y);
@@ -76,14 +82,17 @@ int main() {
                 for (int j = 1; j < arrBoardSize - 1; j++) {
                     if (player == 1) {
                         //inverted positions for compatibility with 2D array
-                        if (KoEnforce(stonePlacement, player, opponent, j, i, ko)) player1Pts++;
+                        if (KoEnforce(stonePlacement, player, opponent, tempStonePlacement,
+                                      usedStonePlacement, j, i, ko)) player1Pts++;
                     } else {
-                        if (KoEnforce(stonePlacement, player, opponent, j, i, ko)) player2Pts++;
+                        if (KoEnforce(stonePlacement, player, opponent, tempStonePlacement,
+                                      usedStonePlacement, j, i, ko)) player2Pts++;
                     }
                 }
             }
             //check for suicidal move without KO move
-            if(!CheckForSuicide(stonePlacement, player, opponent, tabX, tabY, ko)){
+            if(!CheckForSuicide(stonePlacement, player, opponent, tempStonePlacement,
+                                usedStonePlacement, tabX, tabY, ko)){
                 stonePlacement[tabX][tabY] = 0;
                 continue;
             }
@@ -95,7 +104,7 @@ int main() {
             counter = 0;
             player1Pts = 0;
             player2Pts = 0;
-            NewBoard(arrBoardSize, stonePlacement);
+            NewBoard(arrBoardSize, stonePlacement, 3);
         }
         if(zn == sKey){
             FILE *f = fopen("D:\\PG\\BOP\\GO_CPP\\savedgame.txt", "w");
