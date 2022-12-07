@@ -4,6 +4,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "conio2.h"
 #include "functions.h"
+#include <windows.h>
 void CreateBoard(int boardSize){
     gotoxy(xCord, yCord);
     int lastXCord = boardSize + xCord;
@@ -17,17 +18,54 @@ void CreateBoard(int boardSize){
         cputs("\n");
     }
 }
+void InitializeHandicap(int attr, int back, int boardSize, int arrBoardSize, int **stonePlacement, int *zn, int *zero,
+                        int *x, int *y) {
+    do{
+        textbackground(BLACK);
+        clrscr();
+        textcolor(7);
+        CreateBoard(boardSize);
+        gotoxy(*x, *y);
+        if(CheckForBorders(boardSize, x, y)) continue;
+        InsertStone(arrBoardSize, stonePlacement);
+        gotoxy(*x, *y);
+        textcolor(attr);
+        textbackground(back);
+        putch('*');
+        *zero = 0;
+        *zn = getch();
+        if(*zn == moveArrow) ArrowMovement(zn, zero, x, y);
+        if(*zn == iKey){
+            int tabX = *y - yCord;
+            int tabY = *x - xCord;
+            if(stonePlacement[tabX][tabY] == 1 || stonePlacement[tabX][tabY] == 2) continue;
+            stonePlacement[tabX][tabY] = 1;
+        }
+        if(*zn == escKey){
+            NewBoard(arrBoardSize, stonePlacement, 3);
+            break;
+        }
+    } while (*zn != enterKey);
+}
 
 void initializeBoard(int *boardSize, int sign) {
     while (true) {
+        int input = 0;
+        int sizeOfBoard;
+        int availableColumns, availableRows;
+        char sizeInput[4] = {'\0'};
+        char text[32];
+        char* ptr;
         gotoxy(boardXYCord, boardXYCord);
         // we print out a text at a given cursor position
         // the cursor will move by the length of the text
-        cputs("a = board 9x9");
+        cputs("a) board 9x9");
         gotoxy(boardXYCord, boardXYCord+1);
-        cputs("b = board 13x13");
+        cputs("b) board 13x13");
         gotoxy(boardXYCord, boardXYCord+2);
-        cputs("c = board 19x19");
+        cputs("c) board 19x19");
+        gotoxy(boardXYCord, boardXYCord+3);
+        cputs("d) Custom size");
         sign = getch();
         switch (sign) {
             case aKey:
@@ -39,8 +77,32 @@ void initializeBoard(int *boardSize, int sign) {
             case cKey:
                 *boardSize = 19;
                 break;
+            case dKey:
+                CONSOLE_SCREEN_BUFFER_INFO csbi;
+                GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
+                availableRows = csbi.srWindow.Bottom - csbi.srWindow.Top - yCord - 1;
+                availableColumns = csbi.srWindow.Right - csbi.srWindow.Left - xCord - 1;
+                while(sign != enterKey){
+                    if(sign == escKey){
+                        continue;
+                    }
+                    gotoxy(legendXPos, legendYPos+6);
+                    sprintf(text, "Enter a size: %s", sizeInput);
+                    cputs(text);
+                    sign = getch();
+                    sizeInput[input] = (char)sign;
+                    input++;
+                }
+
+                 sizeOfBoard = strtol(sizeInput, &ptr,10);
+                if(sizeOfBoard > availableRows || sizeOfBoard > availableColumns){
+                    gotoxy(boardXYCord, boardXYCord+4);
+                    cputs("Size of the board doesn't fit the window, enter a different size");
+                    continue;
+                } else *boardSize = sizeOfBoard;
+                break;
             default:
-                gotoxy(3, 5);
+                gotoxy(boardXYCord, boardXYCord+5);
                 cputs("Incorrect key, try again");
                 continue;
         }
@@ -91,10 +153,10 @@ int SurroundingCheck(int player, int opponent, int **stonePlacement, int **tempS
     }
     return point;
 }
-bool CheckKO(int **stonePlacement, int **tempStonePlacement, int arrBoardSize){
+bool CheckKO(int **stonePlacement, int **koArray, int arrBoardSize){
     for(int i = 0; i < arrBoardSize - 1; i++){
         for(int j = 0; j < arrBoardSize - 1; j++){
-            if(stonePlacement[i][j] == tempStonePlacement[i][j]) continue;
+            if(stonePlacement[j][i] == koArray[j][i]) continue;
             else return false;
         }
     }
@@ -121,12 +183,12 @@ bool CheckForBorders(int boardSize, int *x, int *y) {
 void InsertStone(int arrBoardSize, int **stonePlacement) {
     for(int i = 1; i < arrBoardSize - 1; i++){
         for(int j = 1; j < arrBoardSize - 1; j++){
-            if(stonePlacement[i][j] == 1){
-                gotoxy(j+yCord, i+xCord);
+            if(stonePlacement[j][i] == 1){
+                gotoxy(i+xCord, j+yCord);
                 textcolor(3);
                 putch('*');
-            } else if(stonePlacement[i][j] == 2){
-                gotoxy(j+yCord, i+xCord);
+            } else if(stonePlacement[j][i] == 2){
+                gotoxy(i+xCord, j+yCord);
                 textcolor(4);
                 putch('*');
             }

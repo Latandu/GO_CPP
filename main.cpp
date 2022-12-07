@@ -1,23 +1,24 @@
 #define _CRT_SECURE_NO_WARNINGS
 
-#include <iostream>
 #include "conio2.h"
 #include "functions.h"
-#define xCord 5
-#define yCord 5
+#define xCord 50
+#define yCord 3
 #define aKey 0x61
 #define bKey 0x62
 #define cKey 0x63
 #define iKey 0x69
 #define nKey 0x6e
-#define legendXPos 60
-#define legendYPos 10
+#define legendXPos 3
+#define legendYPos 3
 #define boardXYCord 3
 #define moveArrow 0
 #define sKey 0x73
 #define hKey 0x68
 #define enterKey 0x0d
 #define escKey 0x1b
+
+
 
 
 int main() {
@@ -28,26 +29,32 @@ int main() {
     int sign = 0;
     int player1Pts = 0;
     int player2Pts = 0;
+    int ko = 0;
     settitle("Jakub Andrunik, 193166");
     _setcursortype(_NOCURSOR);
     initializeBoard(&boardSize, sign);
-    int x = (boardSize+xCord) / 2;
-    int y = (boardSize + yCord) / 2;
+    int x = xCord + (boardSize / 2);
+    int y = yCord + (boardSize / 2);
     int arrBoardSize = boardSize +2;
     int** stonePlacement = new int*[arrBoardSize];
+    int** koArray1 = new int*[arrBoardSize];
+    int** koArray2 = new int*[arrBoardSize];
     int** tempStonePlacement = new int*[arrBoardSize];
     for(int i = 0; i < arrBoardSize; i++) {
         stonePlacement[i] = new int[arrBoardSize];
         tempStonePlacement[i] = new int[arrBoardSize];
+        koArray1[i] = new int[arrBoardSize];
+        koArray2[i] = new int[arrBoardSize];
     }
     NewBoard(arrBoardSize, stonePlacement, 3);
-
-
-
+    NewBoard(arrBoardSize, koArray1, 3);
+    NewBoard(arrBoardSize, koArray2, 3);
 #ifndef __cplusplus
     Conio2_Init();
     Functions_Init();
 #endif
+    InitializeHandicap(attr, back, boardSize, arrBoardSize, stonePlacement, &zn, &zero, &x, &y);
+
     do {
         DisplayLegend(zn, zero, txt, x, y, counter, player1Pts, player2Pts);
         CreateBoard(boardSize);
@@ -71,9 +78,14 @@ int main() {
             //check whether there is already any other stone
             if(stonePlacement[tabX][tabY] == 1 || stonePlacement[tabX][tabY] == 2) continue;
             //add stone according to player number
-            if(player == 1) stonePlacement[tabX][tabY] = 1;
-            else stonePlacement[tabX][tabY] = 2;
+            if(player == 1){
+                stonePlacement[tabX][tabY] = 1;
+            }
+            else{
+                stonePlacement[tabX][tabY] = 2;
+            }
             //check for all possible combinations of board
+
             for (int i = 1; i < arrBoardSize - 1; i++){
                 for (int j = 1; j < arrBoardSize - 1; j++) {
                     NewBoard(arrBoardSize, tempStonePlacement, 3);
@@ -89,26 +101,75 @@ int main() {
                             }
                         }
                     }
+
                 }
             }
+            if (player == 1){
+                if(CheckKO(stonePlacement, koArray1, arrBoardSize)){
+                    for(int i = 0; i < arrBoardSize; i++){
+                        for(int j =0; j < arrBoardSize; j++) stonePlacement[j][i] = koArray2[j][i];
+                    }
+                    player1Pts--;
+                    continue;
+                }
+            }else {
+                if(CheckKO(stonePlacement, koArray2, arrBoardSize)){
+                    for(int i = 0; i < arrBoardSize; i++){
+                        for(int j =0; j < arrBoardSize; j++) stonePlacement[j][i] = koArray1[j][i];
+                    }
+                    player2Pts--;
+                    continue;
+                }
+            }
+
             if(SurroundingCheck(opponent, player, stonePlacement, tempStonePlacement, tabX, tabY)){
                 stonePlacement[tabX][tabY] = 0;
                 continue;
             }
+
+            if(player == 1){
+                for(int i = 0; i < arrBoardSize; i++){
+                    for(int j =0; j < arrBoardSize; j++) koArray1[j][i] = stonePlacement[j][i];
+                }
+            }
+            else {
+                for(int i = 0; i < arrBoardSize; i++){
+                    for(int j =0; j < arrBoardSize; j++) koArray2[j][i] = stonePlacement[j][i];
+                }
+            }
             counter++;
         }
         if(zn == nKey){
+            clrscr();
             counter = 0;
             player1Pts = 0;
             player2Pts = 0;
+            initializeBoard(&boardSize, sign);
             NewBoard(arrBoardSize, stonePlacement, 3);
             NewBoard(arrBoardSize, tempStonePlacement, 3);
+            InitializeHandicap(attr, back, boardSize, arrBoardSize, stonePlacement, &zn, &zero, &x, &y);
         }
         if(zn == sKey){
-            FILE *f = fopen("savedgame.txt", "w");
+            char filename[64] = {0};
+            char file[64];
+            int k = 0;
+            char c = ' ';
+            while(c != enterKey && k < 63){
+                gotoxy(legendXPos+21, legendYPos+9);
+                sprintf(file, "%s", filename);
+                cputs(file);
+                c = char(getch());
+                filename[k] = c;
+                k++;
+
+            }
+
+            FILE *f = fopen(filename, "w");
             for (int i = 1; i < arrBoardSize - 1; i++){
                 for (int j = 1; j < arrBoardSize - 1; j++) {
-                    fprintf(f, "%d ", stonePlacement[i][j]);
+                    //fprintf(f, "%d ", stonePlacement[i][j]);
+                    fprintf(f, "%d", stonePlacement[i][j]);
+                    fprintf(f, "%d", koArray1[i][j]);
                 }
                 fprintf(f, "\n");
             }
@@ -117,10 +178,14 @@ int main() {
 
     } while (zn != 'q');
         delete[] stonePlacement;
+        delete[] tempStonePlacement;
+        delete[] koArray1;
+        delete[] koArray2;
         _setcursortype(_NORMALCURSOR);
         return 0;
 
     }
+
 
 
 
