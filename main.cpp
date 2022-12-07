@@ -14,10 +14,9 @@
 #define boardXYCord 3
 #define moveArrow 0
 #define sKey 0x73
-#define hKey 0x68
 #define enterKey 0x0d
 #define escKey 0x1b
-
+#define lKey 0x6c
 
 
 
@@ -150,31 +149,69 @@ int main() {
             InitializeHandicap(attr, back, boardSize, arrBoardSize, stonePlacement, &zn, &zero, &x, &y);
         }
         if(zn == sKey){
-            char filename[64] = {0};
-            char file[64];
-            int k = 0;
-            char c = ' ';
-            while(c != enterKey && k < 63){
-                gotoxy(legendXPos+21, legendYPos+9);
-                sprintf(file, "%s", filename);
-                cputs(file);
-                c = char(getch());
-                filename[k] = c;
-                k++;
-
-            }
-
-            FILE *f = fopen(filename, "w");
+            char fileName[64] = {0};
+            char fileCPuts[64] = {0};
+            int k = 0, info = 0;
+            char c;
+            do {
+                gotoxy(legendXPos, legendYPos+10);
+                sprintf(fileCPuts, "Enter file name to save: %s", fileName);
+                cputs(fileCPuts);
+                c = (char)getch();
+                if(c == escKey){
+                    info = 1;
+                    break;
+                }
+                if(c != enterKey) {
+                    fileName[k] = c;
+                    k++;
+                }
+            }while(c != enterKey && k < 63);
+            if(info == 1) continue;
+            FILE *f = fopen(fileName, "w");
             for (int i = 1; i < arrBoardSize - 1; i++){
                 for (int j = 1; j < arrBoardSize - 1; j++) {
                     //fprintf(f, "%d ", stonePlacement[i][j]);
                     fprintf(f, "%d", stonePlacement[i][j]);
-                    fprintf(f, "%d", koArray1[i][j]);
                 }
-                fprintf(f, "\n");
             }
             fclose(f);
         }
+        if(zn == lKey){
+            char fileName[64] = {0};
+            char fileCPuts[64] = {0};
+            int k = 0, info = 0, num;
+            int fileBoardSize = arrBoardSize^2;
+            char str[fileBoardSize];
+            char c;
+            int len;
+            do {
+                gotoxy(legendXPos, legendYPos+10);
+                sprintf(fileCPuts, "Enter file name to save: %s", fileName);
+                cputs(fileCPuts);
+                c = (char)getch();
+                if(c == escKey){
+                    info = 1;
+                    break;
+                }
+                if(c != enterKey) {
+                    fileName[k] = c;
+                    k++;
+                }
+            }while(c != enterKey && k < 63);
+            if(info == 1) continue;
+            FILE *f = fopen(fileName, "r");
+            rewind(f);
+            for (int i = 1; i < arrBoardSize - 1; i++){
+                for (int j = 1; j < arrBoardSize - 1; j++) {
+                    while(fscanf(f, "%01d", &num) != ' ') {
+                        stonePlacement[i][j] = num;
+                    }
+                }
+            }
+            fclose(f);
+        }
+
 
     } while (zn != 'q');
         delete[] stonePlacement;

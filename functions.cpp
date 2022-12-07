@@ -24,6 +24,8 @@ void InitializeHandicap(int attr, int back, int boardSize, int arrBoardSize, int
         textbackground(BLACK);
         clrscr();
         textcolor(7);
+        gotoxy(legendXPos, legendYPos);
+        cputs("HANDICAP MODE. Press ESC to cancel.");
         CreateBoard(boardSize);
         gotoxy(*x, *y);
         if(CheckForBorders(boardSize, x, y)) continue;
@@ -95,11 +97,7 @@ void initializeBoard(int *boardSize, int sign) {
                 }
 
                  sizeOfBoard = strtol(sizeInput, &ptr,10);
-                if(sizeOfBoard > availableRows || sizeOfBoard > availableColumns){
-                    gotoxy(boardXYCord, boardXYCord+4);
-                    cputs("Size of the board doesn't fit the window, enter a different size");
-                    continue;
-                } else *boardSize = sizeOfBoard;
+                *boardSize = sizeOfBoard;
                 break;
             default:
                 gotoxy(boardXYCord, boardXYCord+5);
@@ -186,11 +184,11 @@ void InsertStone(int arrBoardSize, int **stonePlacement) {
             if(stonePlacement[j][i] == 1){
                 gotoxy(i+xCord, j+yCord);
                 textcolor(3);
-                putch('*');
+                putch('X');
             } else if(stonePlacement[j][i] == 2){
                 gotoxy(i+xCord, j+yCord);
                 textcolor(4);
-                putch('*');
+                putch('O');
             }
         }
     }
@@ -215,7 +213,7 @@ void DisplayLegend(int zn, int zero, char *txt, int x, int y, int counter, int p
     clrscr();
     textcolor(7);
     gotoxy(legendXPos, legendYPos);
-    cputs("q       = exit");
+    cputs("q = exit");
     gotoxy(legendXPos, legendYPos+1);
     cputs("cursors = moving");
     gotoxy(legendXPos, legendYPos+2);
