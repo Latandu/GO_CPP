@@ -28,6 +28,7 @@ void initializeBoard(int *boardSize, int sign);
 void ArrowMovement(int *zn, int *zero, int *x, int *y);
 void InitializeHandicap(int attr, int back, int boardSize, int arrBoardSize, int **stonePlacement, int *zn, int *zero,
                         int *x, int *y);
+void ReadFileName(char *fileName, int *info);
 void DisplayLegend(int zn, int zero, char *txt, int x, int y, int counter, int player1Pts, int player2Pts);
 void NewBoard(int arrBoardSize, int **stonePlacement, int borders);
 int SurroundingCheck(int player, int opponent, int **stonePlacement, int **tempStonePlacement, int i, int j);

@@ -38,10 +38,20 @@ void InitializeHandicap(int attr, int back, int boardSize, int arrBoardSize, int
         *zn = getch();
         if(*zn == moveArrow) ArrowMovement(zn, zero, x, y);
         if(*zn == iKey){
-            int tabX = *y - yCord;
-            int tabY = *x - xCord;
-            if(stonePlacement[tabX][tabY] == 1 || stonePlacement[tabX][tabY] == 2) continue;
-            stonePlacement[tabX][tabY] = 1;
+            int confirm;
+            gotoxy(legendXPos, legendYPos+10);
+            cputs("Press ENTER to confirm.");
+            gotoxy(legendXPos, legendYPos+11);
+            cputs("Press ESC to cancel.");
+            do{
+                confirm = getch();
+            }while(confirm != enterKey && confirm != escKey);
+            if(confirm == enterKey) {
+                int tabX = *y - yCord;
+                int tabY = *x - xCord;
+                if (stonePlacement[tabX][tabY] == 1 || stonePlacement[tabX][tabY] == 2) continue;
+                stonePlacement[tabX][tabY] = 1;
+            }else continue;
         }
         if(*zn == escKey){
             NewBoard(arrBoardSize, stonePlacement, 3);
@@ -133,19 +143,19 @@ int SurroundingCheck(int player, int opponent, int **stonePlacement, int **tempS
         return 1;
 
 
-    if(stonePlacement[i][j - 1] == opponent & tempStonePlacement[i][j - 1] != opponent){
+    if(stonePlacement[i][j - 1] == opponent && tempStonePlacement[i][j - 1] != opponent){
         point = SurroundingCheck(player, opponent, stonePlacement, tempStonePlacement, i, j - 1);
         if(point == 0) return 0;
     }
-    if(stonePlacement[i][j + 1] == opponent & tempStonePlacement[i][j + 1] != opponent){
+    if(stonePlacement[i][j + 1] == opponent && tempStonePlacement[i][j + 1] != opponent){
         point = SurroundingCheck(player, opponent, stonePlacement, tempStonePlacement, i, j + 1);
         if(point == 0) return 0;
     }
-    if(stonePlacement[i - 1][j] == opponent & tempStonePlacement[i - 1][j] != opponent){
+    if(stonePlacement[i - 1][j] == opponent && tempStonePlacement[i - 1][j] != opponent){
         point = SurroundingCheck(player, opponent, stonePlacement, tempStonePlacement, i - 1, j);
         if(point == 0) return 0;
     }
-    if(stonePlacement[i + 1][j] == opponent & tempStonePlacement[i + 1][j] != opponent){
+    if(stonePlacement[i + 1][j] == opponent && tempStonePlacement[i + 1][j] != opponent){
         point = SurroundingCheck(player, opponent, stonePlacement, tempStonePlacement, i + 1, j);
         if(point == 0) return 0;
     }
@@ -208,35 +218,50 @@ void ArrowMovement(int *zn, int *zero, int *x, int *y) {
 
 }
 
+void ReadFileName(char *fileName, int *info) {
+    *info= 0;
+    char fileCPuts[64] = {0};
+    int k = 0 ;
+    char c;
+    do {
+        gotoxy(legendXPos, legendYPos+9);
+        sprintf(fileCPuts, "Enter file name: %s", fileName);
+        cputs(fileCPuts);
+        c = (char)getch();
+        if(c == escKey){
+            *info = 1;
+            break;
+        }
+        if(c != enterKey) {
+            fileName[k] = c;
+            k++;
+        }
+    }while(c != enterKey && k < 63);
+}
+
 void DisplayLegend(int zn, int zero, char *txt, int x, int y, int counter, int player1Pts, int player2Pts) {
     textbackground(BLACK);
     clrscr();
     textcolor(7);
     gotoxy(legendXPos, legendYPos);
-    cputs("q = exit");
+    cputs("Jakub Andrunik 193166");
     gotoxy(legendXPos, legendYPos+1);
-    cputs("cursors = moving");
+    cputs("Implemented functionalities:");
     gotoxy(legendXPos, legendYPos+2);
-    cputs("space   = change color");
+    cputs("a,b,c,d,e,f,g,h,j,k");
     gotoxy(legendXPos, legendYPos+3);
-    cputs("enter   = change background color");
-    gotoxy(legendXPos, legendYPos+4);
-    if (zero) sprintf(txt, "key code: 0x00 0x%02x", zn);
-    else sprintf(txt, "key code: 0x%02x", zn);
-    cputs(txt);
-    gotoxy(legendXPos, legendYPos+5);
     sprintf(txt, "x coordinates: %02d", x-xCord);
     cputs(txt);
-    gotoxy(legendXPos, legendYPos+6);
+    gotoxy(legendXPos, legendYPos+4);
     sprintf(txt, "y coordinates: %02d", y-yCord);
+    cputs(txt);
+    gotoxy(legendXPos, legendYPos+5);
+    sprintf(txt, "Player 1 points: %02d", player1Pts);
+    cputs(txt);
+    gotoxy(legendXPos, legendYPos+6);
+    sprintf(txt, "Player 2 points: %02d", player2Pts);
     cputs(txt);
     gotoxy(legendXPos, legendYPos+7);
     sprintf(txt, "counter: %02d", counter);
-    cputs(txt);
-    gotoxy(legendXPos, legendYPos+8);
-    sprintf(txt, "Player 1 points: %02d", player1Pts);
-    cputs(txt);
-    gotoxy(legendXPos, legendYPos+9);
-    sprintf(txt, "Player 2 points: %02d", player2Pts);
     cputs(txt);
 }

@@ -20,7 +20,7 @@
 #endif
 
 int _wscroll;
-
+//function min to run project in CLion environment
 int min(int a, int b) {
     if(a < b){
         return a;
