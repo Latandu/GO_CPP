@@ -5,12 +5,17 @@
 #include "conio2.h"
 #include "functions.h"
 #include <windows.h>
-void CreateBoard(int boardSize){
+void CreateBoard(int boardSize, const int* availableRows, const int* availableColumns){
     gotoxy(xCord, yCord);
     int lastXCord = boardSize + xCord;
     int lastYCord = boardSize + yCord;
-    for(int i = xCord;  i <= (lastXCord)+1; i++){
-        for(int j = yCord; j <= lastYCord+1; j++) {
+    int tempXCord = boardSize + xCord;
+    int tempYCord = boardSize + yCord;
+    if(*availableRows < boardSize) tempYCord = *availableRows + yCord;
+    if(*availableColumns < boardSize) tempXCord = *availableColumns + xCord;
+
+    for(int i = xCord;  i <= tempXCord +1; i++){
+        for(int j = yCord; j <= tempYCord + 1; j++) {
             gotoxy(i, j);
             if (j == yCord || j == lastYCord+1) cputs("*");
             else if (i == xCord || i == lastXCord+1) cputs("|");
@@ -19,14 +24,14 @@ void CreateBoard(int boardSize){
     }
 }
 void InitializeHandicap(int attr, int back, int boardSize, int arrBoardSize, int **stonePlacement, int *zn, int *zero,
-                        int *x, int *y) {
+                        int *x, int *y, int* availableRows, int* availableColumns) {
     do{
         textbackground(BLACK);
         clrscr();
         textcolor(7);
         gotoxy(legendXPos, legendYPos);
         cputs("HANDICAP MODE. Press ESC to cancel.");
-        CreateBoard(boardSize);
+        CreateBoard(boardSize, availableRows, availableColumns);
         gotoxy(*x, *y);
         if(CheckForBorders(boardSize, x, y)) continue;
         InsertStone(arrBoardSize, stonePlacement);
@@ -49,22 +54,25 @@ void InitializeHandicap(int attr, int back, int boardSize, int arrBoardSize, int
             if(confirm == enterKey) {
                 int tabX = *y - yCord;
                 int tabY = *x - xCord;
-                if (stonePlacement[tabX][tabY] == 1 || stonePlacement[tabX][tabY] == 2) continue;
-                stonePlacement[tabX][tabY] = 1;
+                if (stonePlacement[tabX][tabY] == player1 || stonePlacement[tabX][tabY] == player2) continue;
+                stonePlacement[tabX][tabY] = player1;
             }else continue;
         }
         if(*zn == escKey){
-            NewBoard(arrBoardSize, stonePlacement, 3);
+            NewBoard(arrBoardSize, stonePlacement);
             break;
         }
     } while (*zn != enterKey);
 }
 
-void initializeBoard(int *boardSize, int sign) {
+void initializeBoard(int *boardSize, int sign, int* availableRows, int* availableColumns) {
+    CONSOLE_SCREEN_BUFFER_INFO screenBuffer;
+    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &screenBuffer);
+    *availableRows = screenBuffer.srWindow.Bottom - screenBuffer.srWindow.Top - yCord - 1;
+    *availableColumns = screenBuffer.srWindow.Right - screenBuffer.srWindow.Left - xCord - 1;
     while (true) {
         int input = 0;
         int sizeOfBoard;
-        int availableColumns, availableRows;
         char sizeInput[4] = {'\0'};
         char text[32];
         char* ptr;
@@ -81,27 +89,24 @@ void initializeBoard(int *boardSize, int sign) {
         sign = getch();
         switch (sign) {
             case aKey:
-                *boardSize = 9;
+                *boardSize = board9;
                 break;
             case bKey:
-                *boardSize = 13;
+                *boardSize = board13;
                 break;
             case cKey:
-                *boardSize = 19;
+                *boardSize = board19;
                 break;
             case dKey:
-                CONSOLE_SCREEN_BUFFER_INFO csbi;
-                GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
-                availableRows = csbi.srWindow.Bottom - csbi.srWindow.Top - yCord - 1;
-                availableColumns = csbi.srWindow.Right - csbi.srWindow.Left - xCord - 1;
-                while(sign != enterKey){
-                    if(sign == escKey){
-                        continue;
-                    }
+                while(true){
                     gotoxy(legendXPos, legendYPos+6);
                     sprintf(text, "Enter a size: %s", sizeInput);
                     cputs(text);
                     sign = getch();
+                    if(sign == enterKey) {
+                        sizeInput[input] = '\000';
+                        break;
+                    }
                     sizeInput[input] = (char)sign;
                     input++;
                 }
@@ -118,28 +123,34 @@ void initializeBoard(int *boardSize, int sign) {
     }
 }
 
-void NewBoard(int arrBoardSize, int **stonePlacement, int borders) {
+void NewBoard(int arrBoardSize, int **stonePlacement) {
     for (int i = 0; i < arrBoardSize; i++){
         for (int j = 0; j < arrBoardSize; j++) {
             if(i == 0 || i == arrBoardSize - 1 || j == 0 || j == arrBoardSize - 1) stonePlacement[i][j] = borders;
-            else stonePlacement[i][j] = 0;
+            else stonePlacement[i][j] = freeSpace;
         }
+    }
+}
+
+void WriteToArray(int arrBoardSize, int **arrayWrite, int **arrayRead) {
+    for(int i = 0; i < arrBoardSize; i++){
+        for(int j =0; j < arrBoardSize; j++) arrayWrite[j][i] = arrayRead[j][i];
     }
 }
 
 int SurroundingCheck(int player, int opponent, int **stonePlacement, int **tempStonePlacement, int i, int j){
     static int point;
     if (stonePlacement[i][j] == opponent
-        && ((stonePlacement[i - 1][j] == 0)
-            || (stonePlacement[i + 1][j] == 0)
-            || (stonePlacement[i][j - 1] == 0)
-            || (stonePlacement[i][j + 1] == 0))) return 0;
+        && ((stonePlacement[i - 1][j] == freeSpace)
+            || (stonePlacement[i + 1][j] == freeSpace)
+            || (stonePlacement[i][j - 1] == freeSpace)
+            || (stonePlacement[i][j + 1] == freeSpace))) return 0;
 
     tempStonePlacement[i][j] = opponent;
-    if((stonePlacement[i - 1][j] == player || stonePlacement[i - 1][j] == 3 || tempStonePlacement[i - 1][j] == opponent)
-    && (stonePlacement[i + 1][j] == player || stonePlacement[i + 1][j] == 3 || tempStonePlacement[i + 1][j] == opponent)
-    && (stonePlacement[i][j + 1] == player || stonePlacement[i][j + 1] == 3 || tempStonePlacement[i][j + 1] == opponent)
-    && (stonePlacement[i][j - 1] == player || stonePlacement[i][j - 1] == 3 || tempStonePlacement[i][j - 1] == opponent))
+    if((stonePlacement[i - 1][j] == player || stonePlacement[i - 1][j] == borders || tempStonePlacement[i - 1][j] == opponent)
+    && (stonePlacement[i + 1][j] == player || stonePlacement[i + 1][j] == borders || tempStonePlacement[i + 1][j] == opponent)
+    && (stonePlacement[i][j + 1] == player || stonePlacement[i][j + 1] == borders || tempStonePlacement[i][j + 1] == opponent)
+    && (stonePlacement[i][j - 1] == player || stonePlacement[i][j - 1] == borders || tempStonePlacement[i][j - 1] == opponent))
         return 1;
 
 
@@ -191,13 +202,13 @@ bool CheckForBorders(int boardSize, int *x, int *y) {
 void InsertStone(int arrBoardSize, int **stonePlacement) {
     for(int i = 1; i < arrBoardSize - 1; i++){
         for(int j = 1; j < arrBoardSize - 1; j++){
-            if(stonePlacement[j][i] == 1){
+            if(stonePlacement[j][i] == player1){
                 gotoxy(i+xCord, j+yCord);
-                textcolor(3);
+                textcolor(colorRed);
                 putch('X');
-            } else if(stonePlacement[j][i] == 2){
+            } else if(stonePlacement[j][i] == player2){
                 gotoxy(i+xCord, j+yCord);
-                textcolor(4);
+                textcolor(colorBlue);
                 putch('O');
             }
         }
@@ -239,7 +250,7 @@ void ReadFileName(char *fileName, int *info) {
     }while(c != enterKey && k < 63);
 }
 
-void DisplayLegend(int zn, int zero, char *txt, int x, int y, int counter, int player1Pts, int player2Pts) {
+void DisplayLegend(char *txt, int x, int y, int counter, int player1Pts, int player2Pts) {
     textbackground(BLACK);
     clrscr();
     textcolor(7);
@@ -248,7 +259,7 @@ void DisplayLegend(int zn, int zero, char *txt, int x, int y, int counter, int p
     gotoxy(legendXPos, legendYPos+1);
     cputs("Implemented functionalities:");
     gotoxy(legendXPos, legendYPos+2);
-    cputs("a,b,c,d,e,f,g,h,j,k");
+    cputs("a,b,c,d,e,f,g,h,i,j,k");
     gotoxy(legendXPos, legendYPos+3);
     sprintf(txt, "x coordinates: %02d", x-xCord);
     cputs(txt);

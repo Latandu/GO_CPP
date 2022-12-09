@@ -20,8 +20,8 @@
 #define moveArrow 0
 #define player1 1
 #define player2 2
-#define borders 3
 #define freeSpace 0
+
 struct GameInfo {
     int player1Pts;
     int player2Pts;
@@ -33,15 +33,15 @@ struct GameInfo {
 
 int main() {
     int zn = 0, attr = 7, back = 0, zero = 0;
-    int boardSize;
     char txt[32];
     int sign = 0;
+    int boardSize, availableColumns = 0, availableRows = 0;
     gameInfo.player1Pts = 0;
     gameInfo.player2Pts = 0;
     gameInfo.counter = 0;
     settitle("Jakub Andrunik, 193166");
     _setcursortype(_NOCURSOR);
-    initializeBoard(&boardSize, sign);
+    initializeBoard(&boardSize, sign, &availableRows, &availableColumns);
     // set the starting place in the middle
     int x = xCord + (boardSize / 2);
     int y = yCord + (boardSize / 2);
@@ -56,17 +56,18 @@ int main() {
         koArray1[i] = new int[arrBoardSize];
         koArray2[i] = new int[arrBoardSize];
     }
-    NewBoard(arrBoardSize, stonePlacement, borders);
-    NewBoard(arrBoardSize, koArray1, borders);
-    NewBoard(arrBoardSize, koArray2, borders);
+    NewBoard(arrBoardSize, stonePlacement);
+    NewBoard(arrBoardSize, koArray1);
+    NewBoard(arrBoardSize, koArray2);
 #ifndef __cplusplus
     Conio2_Init();
     Functions_Init();
 #endif
-    InitializeHandicap(attr, back, boardSize, arrBoardSize, stonePlacement, &zn, &zero, &x, &y);
+    InitializeHandicap(attr, back, boardSize, arrBoardSize, stonePlacement, &zn, &zero, &x, &y, &availableRows,
+                       &availableColumns);
     do {
-        DisplayLegend(zn, zero, txt, x, y, gameInfo.counter, gameInfo.player1Pts, gameInfo.player2Pts);
-        CreateBoard(boardSize);
+        DisplayLegend(txt, x, y, gameInfo.counter, gameInfo.player1Pts, gameInfo.player2Pts);
+        CreateBoard(boardSize, &availableRows, &availableColumns);
         gotoxy(x, y);
         if(CheckForBorders(boardSize, &x, &y)) continue;
         InsertStone(arrBoardSize, stonePlacement);
@@ -106,14 +107,13 @@ int main() {
 
                 for (int i = 1; i < arrBoardSize - 1; i++){
                     for (int j = 1; j < arrBoardSize - 1; j++) {
-                        NewBoard(arrBoardSize, tempStonePlacement, 3);
+                        NewBoard(arrBoardSize, tempStonePlacement);
                         //inverted positions for compatibility with 2D array
                         if (stonePlacement[j][i] == opponent &&
                         SurroundingCheck(player, opponent,stonePlacement, tempStonePlacement, j, i) == player1){
                             for (int k = 1; k < arrBoardSize - 1; k++){
                                 for (int l = 1; l < arrBoardSize - 1; l++) {
-                                    if(stonePlacement[l][k] == tempStonePlacement[l][k] &&
-                                    tempStonePlacement[l][k] == opponent){
+                                    if(stonePlacement[l][k] == tempStonePlacement[l][k] && tempStonePlacement[l][k] == opponent){
                                         stonePlacement[l][k] = freeSpace;
                                         if(player == player1) gameInfo.player1Pts++;
                                         else gameInfo.player2Pts++;
@@ -121,22 +121,18 @@ int main() {
                                 }
                             }
                         }
-
                     }
                 }
+
                 if (player == player1){
                     if(CheckKO(stonePlacement, koArray1, arrBoardSize)){
-                        for(int i = 0; i < arrBoardSize; i++){
-                            for(int j =0; j < arrBoardSize; j++) stonePlacement[j][i] = koArray2[j][i];
-                        }
+                        WriteToArray(arrBoardSize, stonePlacement, koArray2);
                         gameInfo.player1Pts--;
                         continue;
                     }
                 }else {
                     if(CheckKO(stonePlacement, koArray2, arrBoardSize)){
-                        for(int i = 0; i < arrBoardSize; i++){
-                            for(int j =0; j < arrBoardSize; j++) stonePlacement[j][i] = koArray1[j][i];
-                        }
+                        WriteToArray(arrBoardSize, stonePlacement, koArray1);
                         gameInfo.player2Pts--;
                         continue;
                     }
@@ -147,17 +143,9 @@ int main() {
                     stonePlacement[tabX][tabY] = freeSpace;
                     continue;
                 }
+                if(player == player1) WriteToArray(arrBoardSize, koArray1, stonePlacement);
+                else WriteToArray(arrBoardSize, koArray2, stonePlacement);
 
-                if(player == player1){
-                    for(int i = 0; i < arrBoardSize; i++){
-                        for(int j =0; j < arrBoardSize; j++) koArray1[j][i] = stonePlacement[j][i];
-                    }
-                }
-                else {
-                    for(int i = 0; i < arrBoardSize; i++){
-                        for(int j =0; j < arrBoardSize; j++) koArray2[j][i] = stonePlacement[j][i];
-                    }
-                }
                 gameInfo.counter++;
             }else continue;
         }
@@ -167,10 +155,10 @@ int main() {
             gameInfo.counter = 0;
             gameInfo.player1Pts = 0;
             gameInfo.player2Pts = 0;
-            initializeBoard(&boardSize, sign);
-            NewBoard(arrBoardSize, stonePlacement, 3);
-            NewBoard(arrBoardSize, tempStonePlacement, 3);
-            InitializeHandicap(attr, back, boardSize, arrBoardSize, stonePlacement, &zn, &zero, &x, &y);
+            initializeBoard(&boardSize, sign, &availableRows, &availableColumns);
+            NewBoard(arrBoardSize, stonePlacement);
+            NewBoard(arrBoardSize, tempStonePlacement);
+            InitializeHandicap(attr, back, boardSize, arrBoardSize, stonePlacement, &zn, &zero, &x, &y, &availableRows, &availableColumns);
         }
         if(zn == sKey){
             gotoxy(legendXPos, legendYPos+8);
@@ -218,6 +206,8 @@ int main() {
         return 0;
 
     }
+
+
 
 
 
