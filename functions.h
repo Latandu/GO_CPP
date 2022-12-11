@@ -29,19 +29,37 @@
 #define borders 3
 #define colorRed 3
 #define colorBlue 4
+
 #include <stdio.h>
 #include <stdlib.h>
-void CreateBoard(int boardSize, const int* availableRows, const int* availableColumns);
+
+void CreateBoard(int boardSize, const int *availableRows, const int *availableColumns);
+
 bool CheckForBorders(int boardSize, int *x, int *y);
-void initializeBoard(int *boardSize, int sign, int* availableRows, int* availableColumns);
+
+void initializeBoard(int *boardSize, int sign, int *availableRows, int *availableColumns);
+
 void ArrowMovement(int *zn, int *zero, int *x, int *y);
+
 void InitializeHandicap(int attr, int back, int boardSize, int arrBoardSize, int **stonePlacement, int *zn, int *zero,
-                        int *x, int *y,  int* availableRows, int* availableColumns);
+                        int *x, int *y, int *availableRows, int *availableColumns, float *komi);
+
 void ReadFileName(char *fileName, int *info);
+
 void DisplayLegend(char *txt, int x, int y, int counter, int player1Pts, int player2Pts);
-void NewBoard(int arrBoardSize, int **stonePlacement);
-int SurroundingCheck(int player, int opponent, int **stonePlacement, int **tempStonePlacement, int i, int j);
+
+void NewBoard(int arrBoardSize, int **stonePlacement, int filling);
+
+int
+SurroundingCheck(int player, int opponent, int **stonePlacement, int **tempStonePlacement, int i, int j, int nullSpace);
+
 bool CheckKO(int **stonePlacement, int **koArray, int arrBoardSize);
+
 void InsertStone(int arrBoardSize, int **stonePlacement);
+
 void WriteToArray(int arrBoardSize, int **arrayWrite, int **arrayRead);
+
+void SurroundingLogic(int arrBoardSize, int **stonePlacement, int **tempStonePlacement, int player, int opponent,
+                      int space, int *pts1, int *pts2);
+
 #endif //GO_CPP_FUNCTIONS_H
